@@ -1,0 +1,12 @@
+rag_env/
+__pycache__/
+*.pyc
+
+.env
+
+vector_db/
+data/
+
+.streamlit/
+
+.vscode/
