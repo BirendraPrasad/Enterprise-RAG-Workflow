@@ -461,8 +461,8 @@ if st.session_state.last_refresh == 0:
 # ══════════════════════════════════════════════════════════════════════════════
 
 with st.sidebar:
-    st.markdown('<div class="sidebar-title">🧠 RAG Assistant</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-subtitle">Retrieval-Augmented Generation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">🧠 Enterprise RAG Assistant</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-subtitle">Retrieval-Augmented Generation(RAG)</div>', unsafe_allow_html=True)
 
     # ── User info ───────────────────────────────────────────────────────────
     role_badge = (
