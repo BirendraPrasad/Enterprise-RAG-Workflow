@@ -1,18 +1,26 @@
 # Enterprise RAG Workflow
 
-## Overview
+## Project Overview
 
-Enterprise Grade Retrieval-Augmented Generation (RAG) Application built using FastAPI, ChromaDB, FlashRank, OpenRouter, and Streamlit for intelligent multi-document search and question answering.
+Enterprise RAG Workflow is an enterprise-grade Retrieval-Augmented Generation (RAG) application built using FastAPI, ChromaDB, FlashRank, OpenRouter, and Streamlit. The system enables intelligent document search and question answering by combining semantic retrieval with Large Language Models (LLMs).
 
-The system allows users to upload PDF documents, automatically index them into a vector database, perform semantic retrieval, rerank results using FlashRank, and generate accurate answers using LLMs.
+Users can upload PDF documents, automatically index them into a vector database, retrieve relevant information using semantic search, rerank results using FlashRank, and generate accurate answers grounded in document content.
 
 ---
 
-## Features
+## Problem Statement
+
+Organizations often store large amounts of information in PDF documents, making it difficult to quickly retrieve relevant information. Traditional keyword-based search systems fail to understand context and semantics.
+
+This project addresses that problem by implementing a Retrieval-Augmented Generation (RAG) system that enables users to upload documents, perform semantic search, and receive accurate answers based on document content.
+
+---
+
+## Key Features
 
 * PDF Upload and Indexing
 * Automatic Text Extraction
-* Intelligent Chunking
+* Intelligent Document Chunking
 * Embedding Generation using Sentence Transformers
 * ChromaDB Vector Database
 * Semantic Search
@@ -21,12 +29,14 @@ The system allows users to upload PDF documents, automatically index them into a
 * FastAPI Backend
 * Streamlit Chat Interface
 * Source Chunk Display
-* Guardrails for Query Validation
+* Query Validation Guardrails
 * Document Management (Upload/Delete)
+* Admin and User Role-Based Access Control (RBAC)
+* Multi-Document Retrieval
 
 ---
 
-## Project Statistics
+## System Statistics
 
 | Metric          | Value            |
 | --------------- | ---------------- |
@@ -41,45 +51,7 @@ The system allows users to upload PDF documents, automatically index them into a
 
 ---
 
-## Architecture
-
-User Query
-
-↓
-
-Streamlit Frontend
-
-↓
-
-FastAPI Backend
-
-↓
-
-Query Validation (Guardrails)
-
-↓
-
-ChromaDB Retrieval
-
-↓
-
-FlashRank Reranking
-
-↓
-
-OpenRouter LLM
-
-↓
-
-Answer Generation
-
-↓
-
-Response with Source Chunks
-
----
-
-## Tech Stack
+## Technology Stack
 
 ### Backend
 
@@ -103,7 +75,7 @@ Response with Source Chunks
 
 * FlashRank
 
-### LLM
+### Large Language Model
 
 * OpenRouter
 
@@ -113,58 +85,126 @@ Response with Source Chunks
 
 ---
 
-## Installation
+## RAG Architecture
 
-Clone Repository
-
-```bash
-git clone https://github.com/BirendraPrasad/Enterprise-RAG-Workflow.git
+```text
+User Query
+      │
+      ▼
+Streamlit Frontend
+      │
+      ▼
+FastAPI Backend
+      │
+      ▼
+Guardrails Validation
+      │
+      ▼
+ChromaDB Retrieval
+      │
+      ▼
+FlashRank Reranking
+      │
+      ▼
+OpenRouter LLM
+      │
+      ▼
+Answer Generation
+      │
+      ▼
+Source Chunk Display
 ```
 
-Create Virtual Environment
+---
 
-```bash
-python -m venv rag_env
-```
+## Complete Workflow
 
-Activate Environment
+### Document Ingestion Pipeline
 
-```bash
-rag_env\Scripts\activate
-```
+1. User uploads a PDF document.
+2. Text is extracted using PyMuPDF.
+3. The document is divided into semantic chunks.
+4. Embeddings are generated using Sentence Transformers.
+5. Embeddings are stored in ChromaDB.
 
-Install Dependencies
+### Query Processing Pipeline
 
-```bash
-pip install -r requirements.txt
-```
+1. User asks a question.
+2. Guardrails validate the query.
+3. Relevant chunks are retrieved from ChromaDB.
+4. FlashRank reranks retrieved chunks.
+5. Top-ranked chunks are sent to the LLM.
+6. The LLM generates a grounded answer.
+7. The answer and source chunks are displayed.
 
-Run Backend
+---
 
-```bash
-uvicorn main:app --reload
-```
+## System Prompt Strategy
 
-Run Frontend
+The LLM is instructed to:
 
-```bash
-streamlit run app.py
-```
+* Answer only using retrieved document context.
+* Avoid hallucinating information.
+* Provide concise and accurate responses.
+* Use retrieved chunks as supporting evidence.
+* Return fallback responses when context is insufficient.
+
+---
+
+## Role-Based Access Control (RBAC)
+
+### Administrator
+
+Administrators can:
+
+* Upload PDF documents
+* Delete indexed documents
+* Manage the knowledge base
+* Ask questions
+* View retrieved source chunks
+
+### User
+
+Users can:
+
+* Ask questions from indexed documents
+* View generated answers
+* View retrieved source chunks
+
+Users cannot:
+
+* Upload documents
+* Delete documents
+* Modify the knowledge base
+
+---
+
+## Why RAG?
+
+Retrieval-Augmented Generation (RAG) combines information retrieval with language generation.
+
+Benefits include:
+
+* Knowledge can be updated without retraining the model.
+* New PDFs can be added instantly.
+* Answers are grounded in actual documents.
+* Reduced hallucinations.
+* Scalable knowledge management.
 
 ---
 
 ## API Endpoints
 
+### Upload Document
+
+```http
+POST /upload
+```
+
 ### Query Documents
 
 ```http
 POST /query
-```
-
-### Upload PDF
-
-```http
-POST /upload
 ```
 
 ### List Documents
@@ -181,19 +221,166 @@ DELETE /documents/{filename}
 
 ---
 
-## Future Improvements
+## Installation Guide
 
-* Multi-user support
+### Clone Repository
+
+```bash
+git clone https://github.com/BirendraPrasad/Enterprise-RAG-Workflow.git
+```
+
+### Navigate to Project
+
+```bash
+cd Enterprise-RAG-Workflow
+```
+
+### Create Virtual Environment
+
+```bash
+python -m venv rag_env
+```
+
+### Activate Environment
+
+#### Windows
+
+```bash
+rag_env\Scripts\activate
+```
+
+#### Linux / Mac
+
+```bash
+source rag_env/bin/activate
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Running the Application
+
+### Start Backend
+
+```bash
+uvicorn main:app --reload
+```
+
+Backend URL:
+
+```text
+http://localhost:8000
+```
+
+Swagger Documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+### Start Frontend
+
+```bash
+streamlit run app.py
+```
+
+Frontend URL:
+
+```text
+http://localhost:8501
+```
+
+---
+
+## Screenshots
+
+### Login Page
+
+(Add Screenshot)
+
+### Admin Dashboard
+
+(Add Screenshot)
+
+### User Dashboard
+
+(Add Screenshot)
+
+### PDF Upload
+
+(Add Screenshot)
+
+### Question Answering
+
+(Add Screenshot)
+
+### Source Chunk Retrieval
+
+(Add Screenshot)
+
+---
+
+## Results
+
+* Successfully indexed 35 PDF documents.
+* Processed 6893+ pages.
+* Generated 2989 semantic chunks.
+* Implemented semantic retrieval and reranking.
+* Built a complete Enterprise RAG pipeline.
+* Added Admin/User Role-Based Access Control.
+* Enabled document-grounded question answering.
+
+---
+
+## Future Enhancements
+
+* Multi-user authentication using JWT
 * Document-specific filtering
 * Hybrid Search (BM25 + Vector Search)
 * Conversation Memory
-* Advanced Analytics Dashboard
+* Analytics Dashboard
 * Cloud Deployment
+* User Activity Monitoring
+* Fine-tuned Domain-Specific Models
+
+---
+
+## Project Structure
+
+```text
+Enterprise-RAG-Workflow
+│
+├── app/
+│   ├── chunking.py
+│   ├── embeddings.py
+│   ├── ingestion.py
+│   ├── retrieval.py
+│   ├── reranker.py
+│   ├── vectordb.py
+│   ├── llm.py
+│   ├── guardrails.py
+│
+├── data/
+├── vector_db/
+│
+├── app.py
+├── main.py
+├── index_documents.py
+├── README.md
+└── .env
+```
 
 ---
 
 ## Author
 
-Birendra Prasad
+**Birendra Prasad**
 
-Enterprise Grade RAG Workflow Project
+Enterprise Grade Retrieval-Augmented Generation (RAG) Workflow Project
+
+Built using FastAPI, ChromaDB, FlashRank, OpenRouter, and Streamlit.
