@@ -294,35 +294,6 @@ Frontend URL:
 ```text
 http://localhost:8501
 ```
-
----
-
-## Screenshots
-
-### Login Page
-
-(Add Screenshot)
-
-### Admin Dashboard
-
-(Add Screenshot)
-
-### User Dashboard
-
-(Add Screenshot)
-
-### PDF Upload
-
-(Add Screenshot)
-
-### Question Answering
-
-(Add Screenshot)
-
-### Source Chunk Retrieval
-
-(Add Screenshot)
-
 ---
 
 ## Results
