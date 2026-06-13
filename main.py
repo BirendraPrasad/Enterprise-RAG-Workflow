@@ -17,7 +17,7 @@ from app.crud import (
 )
 
 app = FastAPI(
-    title="E-Commerce RAG Assistant"
+    title="Enterprise RAG Assistant"
 )
 
 

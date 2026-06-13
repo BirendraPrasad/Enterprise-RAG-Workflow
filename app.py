@@ -237,8 +237,147 @@ st.markdown("""
 
     /* Hide streamlit branding */
     #MainMenu, footer, header { visibility: hidden; }
+
+    /* Login page */
+    .login-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+    .login-box {
+        background: #1a1d27;
+        border: 1px solid #2e3250;
+        border-radius: 16px;
+        padding: 2.5rem 2.8rem;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+    .login-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #7c8ff7, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 0.3rem;
+    }
+    .login-subtitle {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-bottom: 1.8rem;
+    }
+    .role-badge-admin {
+        display: inline-block;
+        background: linear-gradient(135deg, #3b4fd6, #5b6ef5);
+        color: #fff;
+        border-radius: 20px;
+        padding: 0.2rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.4rem;
+    }
+    .role-badge-user {
+        display: inline-block;
+        background: #2e3250;
+        color: #7c8ff7;
+        border: 1px solid #3a3f6e;
+        border-radius: 20px;
+        padding: 0.2rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.4rem;
+    }
+    .user-info-bar {
+        background: #1e2235;
+        border: 1px solid #2e3250;
+        border-radius: 8px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.82rem;
+        color: #7c8ff7;
+        margin-bottom: 0.5rem;
+    }
+    section[data-testid="stSidebar"] {
+    min-width: 350px !important;
+    max-width: 350px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+
+# ── Credentials ─────────────────────────────────────────────────────────────
+
+USERS = {
+    "admin": {"password": "admin123", "role": "admin"},
+    "user":  {"password": "user123",  "role": "user"},
+}
+
+
+# ── Auth session state init ──────────────────────────────────────────────────
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "username" not in st.session_state:
+    st.session_state.username = None
+if "role" not in st.session_state:
+    st.session_state.role = None
+if "login_error" not in st.session_state:
+    st.session_state.login_error = ""
+
+
+# ── Login page ───────────────────────────────────────────────────────────────
+
+def show_login_page():
+    # Hide sidebar on login screen
+    st.markdown("""
+    <style>
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.6, 1])
+    with col2:
+        st.markdown("""
+        <div class="login-title" style="text-align:center;margin-top:3rem;">🧠 Enterprise RAG Assistant</div>
+        <div class="login-subtitle" style="text-align:center;color:#6b7280;font-size:0.85rem;margin-bottom:1.5rem;">Sign in to continue</div>
+        """, unsafe_allow_html=True)
+
+        with st.form("login_form"):
+            username = st.text_input("Username", placeholder="Enter username")
+            password = st.text_input("Password", type="password", placeholder="Enter password")
+            submitted = st.form_submit_button("Sign In", use_container_width=True)
+
+        if st.session_state.login_error:
+            st.error(st.session_state.login_error)
+
+        if submitted:
+            creds = USERS.get(username)
+            if creds and creds["password"] == password:
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.session_state.role = creds["role"]
+                st.session_state.login_error = ""
+                st.rerun()
+            else:
+                st.session_state.login_error = "❌ Invalid username or password."
+                st.rerun()
+
+
+# ── If not authenticated, show login only ────────────────────────────────────
+
+if not st.session_state.authenticated:
+    show_login_page()
+    st.stop()
+
+
+# ── Authenticated — derive role ──────────────────────────────────────────────
+
+is_admin = st.session_state.role == "admin"
 
 
 # ── Session state init ──────────────────────────────────────────────────────
@@ -325,25 +464,39 @@ with st.sidebar:
     st.markdown('<div class="sidebar-title">🧠 RAG Assistant</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-subtitle">Retrieval-Augmented Generation</div>', unsafe_allow_html=True)
 
-    # ── Upload section ──────────────────────────────────────────────────────
-    st.markdown("#### 📤 Upload Document")
-    uploaded_file = st.file_uploader(
-        "Choose a PDF file",
-        type=["pdf"],
-        label_visibility="collapsed",
+    # ── User info ───────────────────────────────────────────────────────────
+    role_badge = (
+        '<span class="role-badge-admin">Admin</span>'
+        if is_admin else
+        '<span class="role-badge-user">User</span>'
+    )
+    st.markdown(
+        f'<div class="user-info-bar">👤 Logged in as <strong>{st.session_state.username}</strong> {role_badge}</div>',
+        unsafe_allow_html=True,
     )
 
-    if st.button("Upload PDF", use_container_width=True, disabled=uploaded_file is None):
-        with st.spinner("Uploading and indexing…"):
-            result = upload_pdf(uploaded_file)
-        if result["ok"]:
-            d = result["data"]
-            st.success(f"✅ **{d.get('filename', uploaded_file.name)}** — {d.get('chunks_stored', '?')} chunks stored")
-            refresh_documents()
-        else:
-            st.error(f"❌ {result['error']}")
-
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ── Upload section (Admin only) ─────────────────────────────────────────
+    if is_admin:
+        st.markdown("#### 📤 Upload Document")
+        uploaded_file = st.file_uploader(
+            "Choose a PDF file",
+            type=["pdf"],
+            label_visibility="visible",
+        )
+
+        if st.button("Upload PDF", use_container_width=True, disabled=uploaded_file is None):
+            with st.spinner("Uploading and indexing…"):
+                result = upload_pdf(uploaded_file)
+            if result["ok"]:
+                d = result["data"]
+                st.success(f"✅ **{d.get('filename', uploaded_file.name)}** — {d.get('chunks_stored', '?')} chunks stored")
+                refresh_documents()
+            else:
+                st.error(f"❌ {result['error']}")
+
+        st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
     # ── Documents list ──────────────────────────────────────────────────────
     col1, col2 = st.columns([3, 1])
@@ -363,24 +516,31 @@ with st.sidebar:
     else:
         for doc in docs:
             name = doc if isinstance(doc, str) else doc.get("filename", str(doc))
-            col_d, col_x = st.columns([5, 1])
-            with col_d:
+
+            if is_admin:
+                col_d, col_x = st.columns([5, 1])
+                with col_d:
+                    st.markdown(
+                        f'<div class="doc-card"><span class="doc-icon">📄</span>{name}</div>',
+                        unsafe_allow_html=True,
+                    )
+                with col_x:
+                    st.markdown("<div style='padding-top:0.15rem'>", unsafe_allow_html=True)
+                    if st.button("🗑", key=f"del_{name}", help=f"Delete {name}"):
+                        with st.spinner(f"Deleting {name}…"):
+                            res = delete_document(name)
+                        if res["ok"]:
+                            st.success(f"Deleted **{name}**")
+                            refresh_documents()
+                            st.rerun()
+                        else:
+                            st.error(res["error"])
+                    st.markdown("</div>", unsafe_allow_html=True)
+            else:
                 st.markdown(
                     f'<div class="doc-card"><span class="doc-icon">📄</span>{name}</div>',
                     unsafe_allow_html=True,
                 )
-            with col_x:
-                st.markdown("<div style='padding-top:0.15rem'>", unsafe_allow_html=True)
-                if st.button("🗑", key=f"del_{name}", help=f"Delete {name}"):
-                    with st.spinner(f"Deleting {name}…"):
-                        res = delete_document(name)
-                    if res["ok"]:
-                        st.success(f"Deleted **{name}**")
-                        refresh_documents()
-                        st.rerun()
-                    else:
-                        st.error(res["error"])
-                st.markdown("</div>", unsafe_allow_html=True)
 
     total = len(docs)
     st.markdown(
@@ -393,6 +553,19 @@ with st.sidebar:
     # ── Clear chat ──────────────────────────────────────────────────────────
     if st.button("🗑 Clear Chat History", use_container_width=True):
         st.session_state.messages = []
+        st.rerun()
+
+    st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ── Logout ──────────────────────────────────────────────────────────────
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.authenticated = False
+        st.session_state.username = None
+        st.session_state.role = None
+        st.session_state.messages = []
+        st.session_state.documents = []
+        st.session_state.last_refresh = 0
+        st.session_state.login_error = ""
         st.rerun()
 
 
